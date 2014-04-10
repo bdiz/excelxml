@@ -21,6 +21,8 @@ Or install it yourself as:
 ## Usage
 
 ```ruby
+require 'excelxml'
+
 # First step is to inherit from a worksheet parser.
 class PersonParser < ExcelXml::Worksheet::Parser
   NAME = /name/i
