@@ -50,7 +50,7 @@ end
 my_parsers = ExcelXml::Workbook::Parser.new(File.read(workbook), worksheet_parsers: PersonParser) 
 
 # You'll get a PersonParser instance for each worksheet that had a header row as defined in PersonParser.
-my_parsers[PersonParser].length                          # => 1
+my_parsers[PersonParser].is_a? Array                     # => true
 person_parser = my_parsers[PersonParser].first           # => #<PersonParser:0x00555555f42ab8>
 
 person_parser.worksheet.name                             # => "PersonSheet" (name of worksheet tab)
