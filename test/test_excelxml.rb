@@ -19,9 +19,9 @@ describe ExcelXml do
     def mandatory_columns
       MANDATORY_COLUMNS
     end
-    def is_header? row_number, fields
-      row_number == 1
-    end
+#     def is_header? row_number, fields
+#       row_number == 1
+#     end
     def persons
       @persons ||= rows.collect do |fields| 
         Person.new(fields[NAME], fields[BIRTH], fields[PROFESSION], fields[CITY], fields[STATE], fields[AGE])
@@ -29,6 +29,14 @@ describe ExcelXml do
     end
   end
 
+  EXPECTED_NO_HEADER_SHEET_INFO = [
+    ["1", "2", "3", "4", "5", nil, nil],
+    ["6", "7", "7", "8", "9", "10", nil],
+    %w(11 12 13 14 14 14 14),
+    %w(11 15 16 14 14 14 14),
+    %w(11 17 18 14 14 14 14),
+    %w(19 19 19 19 19 19 19),
+  ]
   EXPECTED_PERSON_INFO = [
     %w(jon jon jon CA CA 1),
     %w(jon jon jon CA CA 2),
@@ -39,10 +47,11 @@ describe ExcelXml do
   ]
 
   it "it can parse a workbook" do
-    workbook_parser = ExcelXml::Workbook::Parser.new(File.read(workbook), PersonParser) 
+    workbook_parser = ExcelXml::Workbook::Parser.new(File.read(workbook), worksheet_parsers: PersonParser) 
 
     workbook_parser.unidentified_worksheets.length.must_equal 1
     workbook_parser.unidentified_worksheets.first.name.must_equal "NoHeaderSheet"
+    workbook_parser.unidentified_worksheets.first.rows.must_equal EXPECTED_NO_HEADER_SHEET_INFO
 
     workbook_parser[PersonParser].length.must_equal 1
     person_parser = workbook_parser[PersonParser].first
