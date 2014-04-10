@@ -38,7 +38,7 @@ class PersonParser < ExcelXml::Worksheet::Parser
     [NAME, CITY]
   end
 
-  # A rows accessor will be available to your parser so that you can iterate through worksheet data.
+  # A #rows accessor will be available to your parser so that you can iterate through worksheet data.
   def persons
     @persons ||= rows.collect do |fields| 
       Person.new(fields[NAME], fields[CITY], fields[STATE], fields[AGE])
@@ -46,21 +46,21 @@ class PersonParser < ExcelXml::Worksheet::Parser
   end
 end
 
+# Next, let the workbook parser match your worksheet parsers to worksheets.
 my_parsers = ExcelXml::Workbook::Parser.new(File.read(workbook), worksheet_parsers: PersonParser) 
 
-# You'll get a PersonParser instance for each worksheet that matched PersonParser#mandatory_columns
-# or PersonParser#is_header?.
+# You'll get a PersonParser instance for each worksheet that had a header row as defined in PersonParser.
 my_parsers[PersonParser].length                          # => 1
 person_parser = my_parsers[PersonParser].first           # => #<PersonParser:0x00555555f42ab8>
 
-person_parser.worksheet.name                             # => "PersonSheet"
+person_parser.worksheet.name                             # => "PersonSheet" (name of worksheet tab)
 person_parser.persons.each do |person| 
   puts "#{person.name} lives in #{person.city}."
 end
 
 # Worksheets that did not match a parsers #mandatory_columns or #is_header? end up here.
 raw_worksheet = my_parsers.unidentified_worksheets.first # => #<ExcelXml::Worksheet:0x00555555f43841>
-raw_worksheet.name                                       # => "NoHeaderSheet"
+raw_worksheet.name                                       # => "NoHeaderSheet" (name of worksheet tab)
 
 # ExcelXml::Worksheet#rows is a 2-dimensional array of string representing your worksheet.
 raw_worksheet.rows.each do |raw_row| 
