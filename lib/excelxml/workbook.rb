@@ -12,13 +12,13 @@ module ExcelXml
     class Parser
       attr_reader :unidentified_worksheets
       def initialize workbook_xml, opts={}
-        only_these_worksheets = [opts.delete(:only_these_worksheets)].flatten.compact if opts[:only_these_worksheets]
+        only_these_worksheets = [opts.delete(:only_these_worksheets)].flatten.compact
         @worksheet_parser_classes = [opts.delete(:worksheet_parsers)].flatten.compact
         @worksheet_parser_hash = @worksheet_parser_classes.each_with_object({}) {|wspc, hsh| hsh[wspc] = [] }
         raise ArgumentError, "unknown options #{opts.keys.inspect}" unless opts.empty?
         @unidentified_worksheets = []
         ExcelXml::Workbook.parse(workbook_xml, single: true).worksheets.each do |worksheet|
-          next if only_these_worksheets and !only_these_worksheets.include?(worksheet.name)
+          next if !only_these_worksheets.empty? and !only_these_worksheets.include?(worksheet.name)
           worksheet_identified = false
           worksheet.rows.each_with_index do |row, row_idx|
             worksheet_identifiers.each do |wsp|

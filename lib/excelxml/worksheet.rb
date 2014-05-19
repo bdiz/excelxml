@@ -21,7 +21,7 @@ module ExcelXml
             grid_col_idx = cell.index ?  cell.index - 1 : grid_col_idx + 1
             (0..cell.merge_down).each do |down|
               (0..cell.merge_across).each do |across|
-                grid[grid_row_idx+down][grid_col_idx+across] = cell.data
+                grid[grid_row_idx+down][grid_col_idx+across] = Field.new(cell.data || "")
               end
             end
             grid_col_idx += cell.merge_across
@@ -43,9 +43,13 @@ module ExcelXml
       def rows
         @rows ||= begin
           @worksheet.rows[(header_row_index+1)..-1].collect do |fields|
-            Fields.new(fields, index_to_header_map)
+            Fields.new(self, fields)
           end
         end
+      end
+
+      def has_header? header
+        index_to_header_map.find {|e| e.match header }
       end
 
       def index_to_header_map
@@ -61,7 +65,7 @@ module ExcelXml
       end
 
       def is_header? row_number, fields
-        return true if mandatory_columns.all? {|mc| fields.any? {|f| next unless f; f.match mc } }
+        return true if mandatory_columns.all? {|mc| fields.compact.any? {|f| f.match mc } }
         return false
       end
 
@@ -69,29 +73,34 @@ module ExcelXml
   end
 
   class Fields < Array
-    def initialize *args
-      super(*args[0..-2])
-      @index_to_header_map = args.last
+    def initialize parser, raw_fields
+      super(raw_fields)
+      @parser = parser
     end
-    def [] regexp
-      return super unless regexp.is_a? Regexp
-      idx = @index_to_header_map.find_index {|e| e.match regexp }
-      raise "#{regexp.inspect} not found in #{@index_to_header_map.inspect}." if idx.nil?
-      super(idx).extend Field
+    def has_header? header
+      @parser.has_header? header
+    end
+    def [] key
+      if idx = @parser.instance_eval { index_to_header_map.find_index {|e| e.match key } }
+        self[idx] = super(idx) || Field.new
+      end
     end
   end
 
-  module Field
+  class Field < String
     def fixnum? 
       return Integer(self)
     rescue
       return false
     end
     def content?
-      return (self.is_a?(String) and !self.empty?)
+      return !self.empty?
     end
     def string? 
       return (self.content? and !self.fixnum?)
+    end
+    def to_nil
+      self.empty? ? nil : self
     end
   end
 
